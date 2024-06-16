@@ -1,4 +1,4 @@
-Sub ImportarArquivo()
+Sub GerarContatos()
 
 On Error Resume Next
 
@@ -8,6 +8,13 @@ Dim N_wb As Workbook
 Dim endereco As String
 Dim Tag As String
 Dim Cnome As String
+Dim exportWB As Workbook
+Dim exportWS As Worksheet
+Dim totalLinhas As Long
+Dim linhasPorArquivo As Long
+Dim numArquivos As Long
+Dim i As Long, j As Long
+Dim novoArquivo As String
 
 Application.DisplayAlerts = False
 
@@ -61,22 +68,53 @@ coluna_destino = 1
                             Planilha3.Cells(linha, 3).Value = Cnome
                     Next
                     
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    novapasta = endereco & "\" & Cnome
+    If Not fso.FolderExists(novapasta) Then
+        fso.CreateFolder (novapasta)
+    End If
+    
     Worksheets(2).Copy
     
     Set N_wb = ActiveWorkbook
     
-    With ActiveSheet
+        With ActiveSheet
             .Name = Cnome
             .Range("A1").Select
-            .SaveAs endereco & "\" & Cnome & ".xlsx"
+            .SaveAs novapasta & "\" & Cnome & " Geral" & ".xlsx"
         End With
 
    
     N_wb.Close False
     
-    Worksheets(2).Select
-    Range("A2:C3000").ClearContents
-    Worksheets(1).Select
+    
+     
+    totalLinhas = Planilha3.UsedRange.Rows.Count
+    linhasPorArquivo = 30
+    numArquivos = Application.WorksheetFunction.Ceiling((totalLinhas - 1) / linhasPorArquivo, 1)
+    
+    For i = 1 To numArquivos
+        Set exportWB = Workbooks.Add
+        Set exportWS = exportWB.Sheets(1)
+        
+        Planilha3.Rows(1).Copy Destination:=exportWS.Rows(1)
+        
+        For j = 1 To linhasPorArquivo
+            If (i - 1) * linhasPorArquivo + j + 1 > totalLinhas Then Exit For
+            Planilha3.Rows((i - 1) * linhasPorArquivo + j + 1).Copy Destination:=exportWS.Rows(j + 1)
+        Next j
+        
+        novoArquivo = novapasta & "\" & Cnome & " (" & Format(i, "00") & ")" & ".xlsx"
+        exportWB.SaveAs Filename:=novoArquivo
+        exportWB.Close False
+    Next i
+
+Worksheets(2).Select
+Range("A2:C3000").ClearContents
+Worksheets(1).Select
+    
+    
+    MsgBox "Arquivos gerados com sucesso!", , "COI Neoenergia Cosern"
     
 Application.DisplayAlerts = True
 
