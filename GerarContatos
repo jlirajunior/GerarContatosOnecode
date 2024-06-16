@@ -1,0 +1,83 @@
+Sub ImportarArquivo()
+
+On Error Resume Next
+
+Dim eFile As Variant
+Dim wb As Workbook
+Dim N_wb As Workbook
+Dim endereco As String
+Dim Tag As String
+Dim Cnome As String
+
+Application.DisplayAlerts = False
+
+Range("A2:C3000").ClearContents
+nome = Now()
+eFile = Application.GetOpenFilename
+
+If eFile = False Then Exit Sub
+
+Workbooks.Open eFile, , True
+
+Set wb = ActiveWorkbook
+
+ultima_linha = wb.Sheets(1).UsedRange.Rows.Count
+
+ultima_coluna = wb.Sheets(1).UsedRange.Columns.Count
+
+endereco = ThisWorkbook.Path
+Tag = Now()
+
+nome = Format(Now(), "dd-mm")
+
+hpadrao = Hour(Tag) & "h"
+
+Cnome = nome & " " & hpadrao
+
+coluna_destino = 1
+
+    For coluna = 1 To ultima_coluna
+        If coluna = 2 Then
+                        For linha = 3 To ultima_linha
+                            Planilha3.Cells(linha - 1, coluna_destino).Value = wb.Sheets(1).Cells(linha, coluna).Value
+                        
+                        Next
+                        coluna_destino = coluna_destino + 1
+            ElseIf coluna = 4 Then
+                        For linha = 3 To ultima_linha
+                            numeroalterado = "5584" & wb.Sheets(1).Cells(linha, coluna).Value
+                            Planilha3.Cells(linha - 1, coluna_destino).Value = numeroalterado
+                    
+                        
+                        Next
+                        coluna_destino = coluna_destino + 1
+                
+        End If
+                Next
+    
+    wb.Close False
+
+                    For linha = 2 To ultima_linha - 1
+                            Planilha3.Cells(linha, 3).Value = Cnome
+                    Next
+                    
+    Worksheets(2).Copy
+    
+    Set N_wb = ActiveWorkbook
+    
+    With ActiveSheet
+            .Name = Cnome
+            .Range("A1").Select
+            .SaveAs endereco & "\" & Cnome & ".xlsx"
+        End With
+
+   
+    N_wb.Close False
+    
+    Worksheets(2).Select
+    Range("A2:C3000").ClearContents
+    Worksheets(1).Select
+    
+Application.DisplayAlerts = True
+
+End Sub
